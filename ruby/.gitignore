@@ -1,0 +1,5 @@
+Gemfile.lock
+ec2_by_region
+ec2_filtered
+incoming
+*.swp

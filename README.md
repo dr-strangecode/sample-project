@@ -1,5 +1,17 @@
 # Sample Project
 
+Some sample code
+
+# To Run Samples
+
+Use Docker
+
+from ruby directory
+$ docker build -t sample-project-ruby:latest .
+$ docker run -it --rm sample-project-ruby /bin/bash
+root@657e6df1be95:/app# ./aws-ips.rb parse_region us-west-2
+
+# Goals
 Create a script in either Ruby or Python that performs the following functions:
 1.    Accept a single argument from the command line and store it in a variable named region_filter. If the value of region_filter contains any characters other than a-z, 0-9, or -, exit with an error stating that the provided region must contain only those allowed characters.
 2.    Programmatically create three directories: incoming, ec2_by_region, ec2_filtered
@@ -15,4 +27,3 @@ Use any gems or modules you'd like.
 Please provide whatever Ruby or Python files you create in a zipped file.
 
 Extra credit: For the modified objects (from steps 5, 6, and 7) belonging to the region specified in region_filter, create a new JSON formatted file in the ec2_by_region directory named extra_credit.json and fill it with an array of consolidated adjoining networks, for example, if the list contains 10.0.0.0/24, 10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24, store a single value of 10.0.0.0/22 in place of these four records.
-

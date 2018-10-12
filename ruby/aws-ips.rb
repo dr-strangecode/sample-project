@@ -10,6 +10,7 @@ require 'json'
 require 'rest-client'
 require 'uuid'
 require 'fileutils'
+require 'ip'
 
 class Exit
   def initialize(message)
@@ -84,22 +85,15 @@ class Parser
 end
 
 class IPRange
-  class << self
-    def update_prefix(prefix)
-      temp = prefix.split('.')
-      new_quad = (temp[1].to_i + 10).to_s
-      return "#{temp[0]}.#{new_quad}.#{temp[2]}.#{temp[3]}"
-    end
-  end
-
   attr_reader :id, :region, :service
-  attr_accessor :ip_prefix
+  attr_accessor :ip_prefix, :original_ip
 
   def initialize(json)
     @id = UUID.generate
     @region = json['region']
     @service = json['service']
-    @ip_prefix = self.class.update_prefix(json['ip_prefix'])
+    @original_ip = IP.new(json['ip_prefix'])
+    @ip_prefix = original_ip.network(655360)
   end
 
   def to_json

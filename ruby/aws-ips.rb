@@ -80,7 +80,57 @@ class Parser
       prefixes.each {|prefix| out[prefix['region']].append IPRange.new(prefix)}
       out.each {|region, prefix_set| Store.store_results(prefix_set.collect {|prefix| prefix.to_h}.to_json, "#{region}.json", "ec2_by_region")}
       out[region_filter].each {|prefix| Store.store_results(prefix.to_json, "#{prefix.id}.json", "ec2_filtered")}
+      networks = out[region_filter].collect {|x| x.ip_prefix}.sort
+      consolidated_networks = IPRangerator.consolidate(networks)
+      Store.store_results(consolidated_networks.to_json, "extra_credit.json", "ec2_by_region")
     end
+  end
+end
+
+class IPRangerator
+  class << self
+    def consolidate(ip_list)
+      subnet_range = {}
+      for i in 8..31 do
+        subnet_range[IP.new("10.0.0.0/#{i}").size.to_s] = i.to_s
+      end
+      new_list = []
+      new_size = 0
+      flag = false
+      start = nil
+      backup_list = []
+      for i in 0..ip_list.size-1 do
+        # beginning of contiguous range
+        if (i != ip_list.size - 1) && (ip_list[i].network(ip_list[i].size).to_addr == ip_list[i+1].to_addr) then
+          flag = true
+          start = ip_list[i].dup if start.nil?
+          backup_list << ip_list[i].dup
+          new_size += ip_list[i].size
+        # end of contiguous range
+        elsif flag == true
+          new_size += ip_list[i].size
+          # some ranges I can't figure out how to consolidate
+          # ex: #<IP::V4 55.2.0.0/15>, #<IP::V4 55.4.0.0/16> - in theory they're contiguous, but I don't know how to consolidate them
+          if subnet_range[new_size.to_s].nil? then
+            new_list << backup_list
+            new_list << ip_list[i]
+          else
+            start.pfxlen = subnet_range[new_size.to_s].to_i
+            new_list << start
+          end
+          start = nil
+          new_size = 0
+          flag = false
+          backup_list = []
+        # non-contigous range
+        else
+          new_list << ip_list[i].dup
+          backup_list = []
+        end
+      end
+      return new_list.flatten
+    end
+
   end
 end
 
@@ -94,6 +144,10 @@ class IPRange
     @service = json['service']
     @original_ip = IP.new(json['ip_prefix'])
     @ip_prefix = original_ip.network(655360)
+  end
+
+  def <=>(other)
+    ip_prefix <=> other.ip_prefix
   end
 
   def to_json

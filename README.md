@@ -7,9 +7,11 @@ Some sample code
 Use Docker
 
 from ruby directory
+```
 $ docker build -t sample-project-ruby:latest .
 $ docker run -it --rm sample-project-ruby /bin/bash
 root@657e6df1be95:/app# ./aws-ips.rb parse_region us-west-2
+```
 
 # Goals
 Create a script in either Ruby or Python that performs the following functions:
